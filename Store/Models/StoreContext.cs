@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 namespace Store.Models
 {
     public class StoreContext : DbContext
     {
         public DbSet<Group> Groups { get; set; }
         public DbSet<Product> Products { get; set; }
-        public DbSet<Store> Stores { get; set; }
+        public DbSet<Warehouse> Stores { get; set; }
         public StoreContext()
         {
 
@@ -15,7 +17,12 @@ namespace Store.Models
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=Hirofumi; Database=WebStore;Integrated Security=False;TrustServerCertificate=True; Trusted_Connection=True;")
+            var config = new ConfigurationBuilder()
+                         .AddJsonFile("appsettings.json")
+                         .SetBasePath(Directory.GetCurrentDirectory())
+                         .Build();
+
+            optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"))
                 .UseLazyLoadingProxies();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,7 +60,7 @@ namespace Store.Models
                .HasMaxLength(255);
             });
 
-            modelBuilder.Entity<Store>(entity =>
+            modelBuilder.Entity<Warehouse>(entity =>
             {
                 entity.ToTable("Storage");
                 entity.HasKey(x => x.Id).HasName("StoreID");

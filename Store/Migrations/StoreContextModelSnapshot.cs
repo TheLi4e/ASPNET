@@ -7,7 +7,7 @@ using Store.Models;
 
 #nullable disable
 
-namespace NetStore.Migrations
+namespace Store.Migrations
 {
     [DbContext(typeof(StoreContext))]
     partial class StoreContextModelSnapshot : ModelSnapshot
@@ -24,131 +24,107 @@ namespace NetStore.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Store.Models.Group", b =>
-                {
-                    b.Property<int>("GroupId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            modelBuilder.Entity("NetStore.Models.Group", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                b.Property<string>("Name")
+                    .HasMaxLength(255)
+                    .HasColumnType("nvarchar(255)")
+                    .HasColumnName("ProductName");
+                b.HasKey("Id")
+                    .HasName("GroupID");
+                b.HasIndex("Name")
+                    .IsUnique()
+                    .HasFilter("[ProductName] IS NOT NULL");
+                b.ToTable("ProductGroups", (string)null);
+            });
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
+            modelBuilder.Entity("NetStore.Models.Product", b =>
+            {
+                b.Property<int>("Id")
+                    .HasColumnType("int");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .HasColumnType("nvarchar(255)")
+                    .HasColumnName("Description");
+                b.Property<int>("GroupID")
+                    .HasColumnType("int");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .HasColumnType("nvarchar(255)")
+                    .HasColumnName("ProductName");
+                b.Property<int>("Price")
+                    .HasColumnType("int")
+                    .HasColumnName("Price");
+                b.HasKey("Id")
+                    .HasName("ProductID");
+                b.HasIndex("Name")
+                    .IsUnique();
+                b.ToTable("Products", (string)null);
+            });
 
-                    b.Property<string>("Name")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("ProductName");
-
-                    b.HasKey("GroupId")
-                        .HasName("GroupID");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasFilter("[ProductName] IS NOT NULL");
-
-                    b.ToTable("ProductGroups", (string)null);
-                });
-
-            modelBuilder.Entity("Store.Models.Product", b =>
-                {
-                    b.Property<int>("ProdId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("Description");
-
-                    b.Property<int>("GroupID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("ProductName");
-
-                    b.Property<int>("Price")
-                        .HasColumnType("int")
-                        .HasColumnName("Price");
-
-                    b.HasKey("ProdId")
-                        .HasName("ProductID");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Products", (string)null);
-                });
-
-            modelBuilder.Entity("Store.Models.Warehouse", b =>
-                {
-                    b.Property<int>("WhId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WhId"));
-
-                    b.Property<int>("Count")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductCount");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("StorageName");
-
-                    b.HasKey("WhId")
-                        .HasName("StoreID");
-
-                    b.ToTable("Storage", (string)null);
-                });
+            modelBuilder.Entity("NetStore.Models.Warehouse", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                b.Property<int>("Count")
+                    .HasColumnType("int")
+                    .HasColumnName("ProductCount");
+                b.Property<string>("Name")
+                    .HasColumnType("nvarchar(max)")
+                    .HasColumnName("StorageName");
+                b.HasKey("Id")
+                    .HasName("StoreID");
+                b.ToTable("Storage", (string)null);
+            });
 
             modelBuilder.Entity("ProductWarehouse", b =>
-                {
-                    b.Property<int>("ProductsProdId")
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ProductsId")
+                    .HasColumnType("int");
+                b.Property<int>("StoresId")
+                    .HasColumnType("int");
+                b.HasKey("ProductsId", "StoresId");
+                b.HasIndex("StoresId");
+                b.ToTable("StorageProduct", (string)null);
+            });
 
-                    b.Property<int>("StoresWhId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ProductsProdId", "StoresWhId");
-
-                    b.HasIndex("StoresWhId");
-
-                    b.ToTable("StorageProduct", (string)null);
-                });
-
-            modelBuilder.Entity("Store.Models.Product", b =>
-                {
-                    b.HasOne("NetStore.Models.Group", "Group")
-                        .WithMany("Products")
-                        .HasForeignKey("ProdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("GroupToProduct");
-
-                    b.Navigation("Group");
-                });
+            modelBuilder.Entity("NetStore.Models.Product", b =>
+            {
+                b.HasOne("NetStore.Models.Group", "Group")
+                    .WithMany("Products")
+                    .HasForeignKey("Id")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired()
+                    .HasConstraintName("GroupToProduct");
+                b.Navigation("Group");
+            });
 
             modelBuilder.Entity("ProductWarehouse", b =>
-                {
-                    b.HasOne("Store.Models.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ProductsProdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("NetStore.Models.Product", null)
+                    .WithMany()
+                    .HasForeignKey("ProductsId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+                b.HasOne("NetStore.Models.Warehouse", null)
+                    .WithMany()
+                    .HasForeignKey("StoresId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
 
-                    b.HasOne("Store.Models.Warehouse", null)
-                        .WithMany()
-                        .HasForeignKey("StoresWhId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Store.Models.Group", b =>
-                {
-                    b.Navigation("Products");
-                });
-#pragma warning restore 612, 618
+            modelBuilder.Entity("NetStore.Models.Group", b =>
+            {
+                b.Navigation("Products");
+            });
         }
     }
 }
