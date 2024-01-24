@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Store.Models;
+using Store.Abstraction;
+using Store.Models.DTO;
 
 namespace Store.Controllers
 {
@@ -7,32 +9,25 @@ namespace Store.Controllers
     [Route("[controller]")]
     public class GroupController : ControllerBase
     {
-        [HttpPost("addGroup")]
-        public IActionResult AddGroup([FromQuery] string name)
+        private readonly IGroupRepository _groupRepository;
+
+        public GroupController(IGroupRepository groupRepository)
         {
-            try
-            {
-                using (var context = new StoreContext())
-                {
-                    if (!context.Groups.Any(x => x.Name.ToLower().Equals(name)))
-                    {
-                        context.Add(new Group()
-                        {
-                            Name = name
+            _groupRepository = groupRepository;
+        }
 
-                        });
-                        context.SaveChanges();
-                        return Ok();
-                    }
+        [HttpPost("addGroup")]
+        public IActionResult AddGroup([FromBody] DTOGroup group)
+        {
+            var result = _groupRepository.AddGroup(group);
+            return Ok(result);
+        }
 
-                    return StatusCode(409);
-
-                }
-            }
-            catch
-            {
-                return StatusCode(500);
-            }
+        [HttpGet("getGroups")]
+        public IActionResult GetGroups()
+        {
+            var result = _groupRepository.GetGroups();
+            return Ok(result);
         }
 
         [HttpDelete("deleteGroup")]
@@ -52,13 +47,36 @@ namespace Store.Controllers
                     context.SaveChanges();
 
                     return Ok();
-
                 }
             }
             catch
             {
                 return StatusCode(500);
             }
+        }
+
+        [HttpGet("GetGroupsCSV")]
+        public FileContentResult GetCSV()
+        {
+            var content = _groupRepository.GetGroupsCSV();
+
+            return File(new System.Text.UTF8Encoding().GetBytes(content), "text/csv", "Groups.csv");
+        }
+
+        [HttpGet("GetCacheCSV")]
+        public ActionResult<string> GetCacheCSV()
+        {
+            var result = _groupRepository.GetСacheStatCSV();
+
+            if (result is not null)
+            {
+                var fileName = $"groups{DateTime.Now.ToBinary()}.csv";
+
+                System.IO.File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), "StaticFiles", fileName), result);
+
+                return "https://" + Request.Host.ToString() + "/static/" + fileName;
+            }
+            return StatusCode(500);
         }
     }
 }

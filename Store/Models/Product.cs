@@ -7,6 +7,6 @@ namespace Store.Models
         public int GroupID { get; set; }
         public virtual Group Group { get; set; } = null!;
         public int Price { get; set; }
-        public virtual List<Store> Stores { get; set; } = null!;
+        public virtual List<Warehouse> Stores { get; set; } = null!;
     }
 }
